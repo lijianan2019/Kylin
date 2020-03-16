@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.lijianan.kylin.mapper.NationMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.lijianan.kylin.entity.Nation">
+        <id column="id" property="id"/>
+        <result column="code" property="code"/>
+        <result column="province" property="province"/>
+        <result column="city" property="city"/>
+        <result column="district" property="district"/>
+        <result column="parent" property="parent"/>
+    </resultMap>
+
+    <resultMap id="voMap" type="com.lijianan.kylin.entity.NationVo">
+        <id column="id" property="value"></id>
+        <result column="province" property="label"></result>
+        <collection property="children" ofType="com.lijianan.kylin.entity.NationVo">
+            <id column="cid" property="value"></id>
+            <result column="city" property="label"></result>
+
+            <collection property="children" ofType="com.lijianan.kylin.entity.NationVo">
+                <id column="did" property="value"></id>
+                <result column="district" property="label"></result>
+            </collection>
+        </collection>
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        id, code, province, city, district, parent
+    </sql>
+
+    <select id="findAll" resultMap="voMap">
+        SELECT p.id, p.province, IF (c.city = '', p.id, c.id) cid, IF ( c.city = '', p.province, c.city ) city,
+        IFNULL(d.id, c.id) did, IFNULL(d.district, c.district) district FROM nation p LEFT JOIN nation c ON p.id =
+        c.parent LEFT JOIN nation d ON c.id = d.parent WHERE p.parent = 1;
+    </select>
+</mapper>

@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.lijianan.kylin.mapper.GoodMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.lijianan.kylin.entity.Good">
+        <id column="id" property="id" />
+        <result column="name" property="name" />
+        <result column="image" property="image" />
+        <result column="price" property="price" />
+        <result column="create" property="create" />
+        <result column="province" property="province" />
+        <result column="city" property="city" />
+        <result column="district" property="district" />
+        <result column="adress" property="adress" />
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        id, name, image, price, create, province, city, district
+    </sql>
+
+    <resultMap id="vomap" type="com.lijianan.kylin.entity.GoodVo" extends="BaseResultMap">
+        <result column="provinceName" property="provinceName"/>
+        <result column="cityName" property="cityName"/>
+        <result column="districtName" property="districtName"/>
+        <result column="sname" property="sname"/>
+        <result column="p1" property="p1"/>
+        <result column="p2" property="p2"/>
+        <result column="sids" property="sids"/>
+    </resultMap>
+
+    <select id="selectPageVo" resultMap="vomap">
+         select g.*,p.province provinceName,
+        IF(c.city='',p.province,c.city)cityName,
+        IF(d.district='',c.city,d.district)districtName,
+        GROUP_CONCAT(s.id)sids,
+        GROUP_CONCAT(s.name)sname
+        from
+        lx_good g
+
+        left join nation p on g.province=p.id
+        LEFT JOIN nation c on g.city=c.id
+        LEFT JOIN nation d on g.district=d.id
+        LEFT JOIN lx_goods_sales gs on g.id=gs.gid
+        LEFT JOIN lx_sales s on gs.sid=s.id
+        <where>
+            <if test="goodVo!=null">
+                <if test="goodVo.name!=null and goodVo.name!=''">
+                    and g.name like concat('%',#{goodVo.name},'%')
+                </if>
+                <if test="goodVo.p1!=null and goodVo.p1!=0">
+                    and g.price>=#{goodVo.p1}
+                </if>
+                <if test="goodVo.p2!=null and goodVo.p2!=0">
+                    and g.price&lt;=#{goodVo.p2}
+                </if>
+            </if>
+        </where>
+        GROUP BY g.id
+    </select>
+
+    <!--<insert id="insertgood" useGeneratedKeys="true" keyProperty="id">
+        insert into lx_good values(#{name},#{image},#{price},#{create},#{province},#{city},#{district},#{adress})
+    </insert>
+    <insert id="insertmiddle">
+        insert into lx_goods_sales values(#{id},#{id1}) where gid=#{id}
+    </insert>-->
+</mapper>
